@@ -14,7 +14,7 @@ from scipy.ndimage import (
     binary_dilation, binary_erosion, binary_opening, grey_dilation, grey_erosion, uniform_filter1d
 )
 from scipy.optimize import curve_fit
-from scipy.signal import cwt, ricker
+import scipy.signal
 
 from ._algorithm_setup import _Algorithm, _class_wrapper
 from ._compat import jit
@@ -579,7 +579,7 @@ class _Classification(_Algorithm):
         half_window = max_scale * 2  # TODO is x2 enough padding to prevent edge effects from cwt?
         padded_y = pad_edges(y, half_window, **pad_kwargs)
         for scale in scales:
-            wavelet_cwt = cwt(padded_y, ricker, [scale])[0, half_window:-half_window]
+            wavelet_cwt = signal.cwt(padded_y, signal.ricker, [scale])[0, half_window:-half_window]
             abs_wavelet = np.abs(wavelet_cwt)
             inner = abs_wavelet / abs_wavelet.sum(axis=0)
             # was not stated in the reference to use abs(wavelet) for the Shannon entropy,
@@ -749,7 +749,7 @@ class _Classification(_Algorithm):
                 scale = ceil(optimize_window(y) / 2)
             # TODO is 2*scale enough padding to prevent edge effects from cwt?
             half_window = scale * 2
-            wavelet_cwt = cwt(pad_edges(y, half_window, **pad_kwargs), _haar, [scale])
+            wavelet_cwt = signal.cwt(pad_edges(y, half_window, **pad_kwargs), _haar, [scale])
             power = wavelet_cwt[0, half_window:-half_window]**2
 
             mask = _refine_mask(_iter_threshold(power, num_std), min_length)
